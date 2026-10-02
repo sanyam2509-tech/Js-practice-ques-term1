@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Term 1 Practice Platform | Interactive Exam Prep</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror 5 Styles & Themes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+
+  <!-- Platform Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Global Header -->
+    <header class="top-header" role="banner">
+      <div class="header-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Question List">
+          <i data-lucide="menu" style="width: 16px; height: 16px;"></i>
+        </button>
+        <div class="logo-badge">
+          <span class="js-icon-badge">JS</span>
+          <span class="platform-title">Term 1 Practice</span>
+        </div>
+        <span class="mode-badge">Exam Prep</span>
+      </div>
+
+      <div class="header-center">
+        <div class="progress-widget">
+          <span class="progress-label">Progress</span>
+          <div class="progress-track" title="Overall completion">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <span class="progress-counter" id="progressCounter">0 / 30 (0%)</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="stat-chip" title="Questions Solved by Difficulty">
+          <span class="dot easy"></span><span id="statEasy">0/14</span>
+          <span class="dot med" style="margin-left: 4px;"></span><span id="statMed">0/11</span>
+          <span class="dot hard" style="margin-left: 4px;"></span><span id="statHard">0/5</span>
+        </div>
+        <button class="icon-btn" id="resetAllBtn" title="Reset all saved progress">
+          <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+          <span>Reset All</span>
+        </button>
+        <button class="icon-btn" id="themeToggleBtn" title="Toggle dark/light theme">
+          <i data-lucide="sun" id="themeIcon" style="width: 14px; height: 14px;"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="main-layout" role="main">
+      
+      <!-- 1. Question Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="search-box">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search questions or concepts..." autocomplete="off">
+          </div>
+          <div class="filter-pills" role="tablist">
+            <button class="filter-pill active" data-filter="all">All (30)</button>
+            <button class="filter-pill" data-filter="easy">Easy</button>
+            <button class="filter-pill" data-filter="medium">Medium</button>
+            <button class="filter-pill" data-filter="hard">Hard</button>
+            <button class="filter-pill" data-filter="solved">Solved</button>
+            <button class="filter-pill" data-filter="unsolved">Unsolved</button>
+          </div>
+        </div>
+        <div class="question-list" id="questionList" role="list">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </aside>
+
+      <!-- 2. Problem Statement Panel -->
+      <section class="problem-panel" id="problemPanel" aria-label="Problem Statement">
+        <div class="problem-header">
+          <div class="problem-meta">
+            <span class="category-badge" id="categoryBadge">Basics & Types</span>
+            <span class="difficulty-tag diff-easy" id="diffBadge">Easy</span>
+            <span class="type-badge" id="typeBadge">Function Implementation</span>
+          </div>
+          <h1 class="problem-title" id="problemTitle">Q1 — Data Types and Operations</h1>
+          <div class="concepts-list" id="conceptsList">
+            <!-- Concepts chips -->
+          </div>
+        </div>
+
+        <div class="problem-body" id="problemDescription">
+          <!-- Problem description & examples -->
+        </div>
+
+        <!-- Interactive Self Check / Quiz Container (for conceptual / output questions) -->
+        <div id="quizContainer" style="display: none;"></div>
+
+        <!-- Progressive Hints Section -->
+        <div class="hints-section">
+          <div class="section-title-sm">
+            <i data-lucide="lightbulb" style="width: 14px; height: 14px; color: var(--accent-yellow);"></i>
+            Progressive Hints
+          </div>
+          <div id="hintsList" class="hints-list">
+            <!-- Hint 1, Hint 2, Hint 3 cards -->
+          </div>
+        </div>
+
+        <!-- Official Solution Section -->
+        <div class="solution-section">
+          <div class="solution-card" id="solutionCard">
+            <div class="solution-header">
+              <div class="section-title-sm">
+                <i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--accent-purple);"></i>
+                Official Solution & Explanation
+              </div>
+              <button class="btn-reveal-solution" id="btnRevealSolution">
+                <i data-lucide="lock" id="solutionLockIcon" style="width: 12px; height: 12px;"></i>
+                <span id="solutionBtnText">View Official Solution</span>
+              </button>
+            </div>
+            <div class="solution-content" id="solutionContent">
+              <div class="code-block-wrapper">
+                <div class="code-block-header">
+                  <span>Official JavaScript Solution</span>
+                  <button class="icon-btn" id="copySolutionBtn" style="padding: 2px 6px; font-size: 10px;">
+                    <i data-lucide="copy" style="width: 11px; height: 11px;"></i> Copy
+                  </button>
+                </div>
+                <pre class="code-block-content" id="solutionCodeText"></pre>
+              </div>
+              <div class="explanation-box" id="explanationText"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Code Editor & Test Console Panel -->
+      <section class="editor-panel" aria-label="Code Editor and Test Console">
+        <div class="editor-toolbar">
+          <div class="editor-title">
+            <i data-lucide="code-2" style="width: 14px; height: 14px; color: var(--accent-blue);"></i>
+            <span>JavaScript Editor</span>
+            <span class="shortcut-hint">Ctrl + Enter to Run</span>
+          </div>
+          <div class="editor-actions">
+            <button class="btn-reset" id="resetCodeBtn" title="Reset starter code">
+              <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i> Reset
+            </button>
+            <button class="btn-run" id="runCodeBtn" title="Execute script and capture console output">
+              <i data-lucide="play" style="width: 13px; height: 13px;"></i> Run Code
+            </button>
+            <button class="btn-check" id="checkCodeBtn" title="Run test cases against submission">
+              <i data-lucide="check-check" style="width: 14px; height: 14px;"></i> Check Code
+            </button>
+          </div>
+        </div>
+
+        <!-- CodeMirror Editor -->
+        <div class="codemirror-container" id="editorContainer"></div>
+
+        <!-- Console & Test Results Panel -->
+        <div class="console-panel">
+          <div class="console-tabs">
+            <div class="tab-group">
+              <button class="console-tab active" id="tabTestResults" data-tab="testResults">
+                <i data-lucide="flask-conical" style="width: 13px; height: 13px;"></i>
+                <span>Test Results</span>
+                <span class="tab-badge" id="testResultBadge">-</span>
+              </button>
+              <button class="console-tab" id="tabConsoleLogs" data-tab="consoleLogs">
+                <i data-lucide="terminal" style="width: 13px; height: 13px;"></i>
+                <span>Console Output</span>
+                <span class="tab-badge" id="consoleLogsBadge">0</span>
+              </button>
+            </div>
+            <button class="icon-btn" id="clearConsoleBtn" style="padding: 2px 8px; font-size: 11px;">
+              <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Clear
+            </button>
+          </div>
+
+          <div class="console-body" id="consoleBody">
+            <!-- View 1: Test Results -->
+            <div class="test-results-view" id="testResultsView">
+              <div class="test-summary-card idle">
+                <span>Click <strong>"Check Code"</strong> to run automated test cases.</span>
+              </div>
+            </div>
+
+            <!-- View 2: Console Logs -->
+            <div class="logs-stream" id="logsStreamView" style="display: none;">
+              <div class="empty-state-text">No console output yet. Click "Run Code" to execute.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Footer Navigation -->
+    <footer class="bottom-footer" role="contentinfo">
+      <div class="footer-nav">
+        <button class="btn-nav" id="prevQuestionBtn">
+          <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> Previous
+        </button>
+        <span class="q-position-text" id="qPositionText">Question 1 of 30</span>
+        <button class="btn-nav" id="nextQuestionBtn">
+          Next <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+        </button>
+      </div>
+
+      <div class="footer-shortcuts">
+        <span class="shortcut-pill"><kbd>Ctrl / Cmd</kbd> + <kbd>Enter</kbd> Run</span>
+        <span class="shortcut-pill"><kbd>Alt</kbd> + <kbd>←</kbd> / <kbd>→</kbd> Navigate</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Confirm Reset Progress Modal -->
+  <div class="modal-overlay" id="resetModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Reset All Progress?</div>
+      </div>
+      <div class="modal-body">
+        This will clear all your solved questions, custom code, and hint states from localStorage. This action cannot be undone.
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelResetModal">Cancel</button>
+        <button class="btn-danger" id="confirmResetModal">Yes, Reset All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Solution Reveal Modal -->
+  <div class="modal-overlay" id="solutionConfirmModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Reveal Official Solution?</div>
+      </div>
+      <div class="modal-body">
+        We strongly recommend trying to solve the problem or using progressive hints first before viewing the official solution. Are you ready to see the answer?
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="cancelSolutionModal">Keep Trying</button>
+        <button class="btn-primary" id="confirmSolutionModal">Show Solution</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- CDN Dependencies -->
+  <!-- CodeMirror 5 Script & Addons -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Confetti Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Application Logic -->
+  <script src="questions.js"></script>
+  <script src="runner.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
