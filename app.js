@@ -553,18 +553,65 @@ document.addEventListener("DOMContentLoaded", () => {
       els.explanationText.innerHTML = "";
     }
 
+    els.copySolutionBtn.innerHTML = `<i data-lucide="copy" style="width: 11px; height: 11px;"></i> Copy`;
     if (window.lucide) {
       lucide.createIcons({ root: els.solutionCard });
     }
   }
 
+  // Robust Clipboard Copy Utility with execCommand fallback
+  async function copyToClipboard(text) {
+    if (!text) return false;
+
+    // 1. Try modern Clipboard API (available in HTTPS / localhost / modern secure contexts)
+    if (navigator.clipboard && (window.isSecureContext || window.location.protocol === "http:" || window.location.protocol === "https:")) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        console.warn("navigator.clipboard.writeText failed, falling back to execCommand:", e);
+      }
+    }
+
+    // 2. Fallback for file:// URLs, iframe sandboxes, and unsupported environments
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.top = "-9999px";
+      textArea.style.left = "-9999px";
+      textArea.style.opacity = "0";
+      textArea.setAttribute("readonly", "");
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (success) return true;
+    } catch (err) {
+      console.error("Fallback execCommand copy failed:", err);
+    }
+
+    return false;
+  }
+
   // Copy Solution Button
-  els.copySolutionBtn.addEventListener("click", () => {
+  els.copySolutionBtn.addEventListener("click", async () => {
     const q = getCurrentQuestion();
     if (q && q.solution) {
-      navigator.clipboard.writeText(q.solution).then(() => {
+      const copied = await copyToClipboard(q.solution);
+      if (copied) {
         showToast("Solution copied to clipboard!", "success");
-      });
+        els.copySolutionBtn.innerHTML = `<i data-lucide="check" style="width: 11px; height: 11px; color: var(--accent-green);"></i> Copied!`;
+        if (window.lucide) lucide.createIcons({ root: els.copySolutionBtn });
+
+        setTimeout(() => {
+          els.copySolutionBtn.innerHTML = `<i data-lucide="copy" style="width: 11px; height: 11px;"></i> Copy`;
+          if (window.lucide) lucide.createIcons({ root: els.copySolutionBtn });
+        }, 2000);
+      } else {
+        showToast("Unable to copy to clipboard", "error");
+      }
     }
   });
 
