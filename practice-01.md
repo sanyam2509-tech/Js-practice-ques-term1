@@ -9,46 +9,66 @@
 
 ## Question 1 — Data Types and Operations
 
-What is printed?
+Write a function `describeValues(a, b)` that returns an object containing:
+
+- `addition` → result of `a + b`
+- `subtraction` → result of `a - b`
+- `typeA` → result of `typeof a`
+- `typeB` → result of `typeof b`
+
+Use the values directly without converting them first.
+
+Example:
 
 ```js
-let a = 10;
-let b = "5";
-
-console.log(a + b);
-console.log(a - b);
-console.log(typeof a);
-console.log(typeof b);
+describeValues(10, "5")
+// {
+//   addition: "105",
+//   subtraction: 5,
+//   typeA: "number",
+//   typeB: "string"
+// }
 ```
 
 ### Answer
 
-```text
-105
-5
-number
-string
+```js
+function describeValues(a, b) {
+  return {
+    addition: a + b,
+    subtraction: a - b,
+    typeA: typeof a,
+    typeB: typeof b
+  };
+}
 ```
 
 ---
 
 ## Question 2 — Variables and Reassignment
 
-What is the final value of `score`?
+Write a function `updateScore(score)` that:
+
+1. adds `10` to `score`
+2. multiplies the result by `2`
+3. subtracts `5`
+4. returns the final value
+
+Example:
 
 ```js
-let score = 20;
-score += 10;
-score *= 2;
-score -= 5;
-
-console.log(score);
+updateScore(20) // 55
 ```
 
 ### Answer
 
-```text
-55
+```js
+function updateScore(score) {
+  score += 10;
+  score *= 2;
+  score -= 5;
+  return score;
+}
 ```
 
 ---
@@ -109,73 +129,107 @@ function isEven(num) {
 
 ---
 
-## Question 6 — `var` Hoisting
+## Question 6 — `var` and Hoisting
 
-What is printed?
+Write a function `getScore()` that uses `var` and returns `10`.
+
+Place the `var` declaration at the top of the function and initialize it before returning the value.
+
+Then call:
 
 ```js
-console.log(x);
-var x = 10;
-console.log(x);
+getScore() // 10
 ```
+
+The goal is to practice the difference between a variable declaration and its initialization.
 
 ### Answer
 
-```text
-undefined
-10
+```js
+function getScore() {
+  var score;
+  score = 10;
+  return score;
+}
 ```
 
-The `var` declaration is hoisted, but the assignment happens when execution reaches `x = 10`.
+With `var`, the declaration is hoisted, but the value is assigned only when the assignment statement executes.
 
 ---
 
 ## Question 7 — Function Declaration Hoisting
 
-What is printed?
+Write a function `runGreeting(name)` that calls a function named `sayHello(name)`.
+
+Keep the `sayHello` function declaration **below** `runGreeting` in your code.
+
+Example:
 
 ```js
-sayHello();
-
-function sayHello() {
-  console.log("Hello");
-}
+runGreeting("Sam")
+// Hello Sam
 ```
+
+This is meant to practice function declaration hoisting.
 
 ### Answer
 
-```text
-Hello
+```js
+function runGreeting(name) {
+  return sayHello(name);
+}
+
+function sayHello(name) {
+  return "Hello " + name;
+}
 ```
+
+Function declarations are hoisted, so `runGreeting` can call `sayHello` even though the declaration appears later in the source.
 
 ---
 
 ## Question 8 — Execution Order and Call Stack
 
-What is the output order?
+Write a function `getExecutionOrder()` that uses two nested function calls to return this exact array:
 
 ```js
-function first() {
-  console.log("first");
-  second();
-  console.log("first again");
-}
-
-function second() {
-  console.log("second");
-}
-
-first();
-console.log("done");
+[
+  "first",
+  "second",
+  "first again",
+  "done"
+]
 ```
+
+Requirements:
+
+- `first()` should add `"first"`
+- `first()` should call `second()`
+- `second()` should add `"second"`
+- after `second()` returns, `first()` should add `"first again"`
+- after `first()` finishes, add `"done"`
 
 ### Answer
 
-```text
-first
-second
-first again
-done
+```js
+function getExecutionOrder() {
+  const result = [];
+
+  function first() {
+    result.push("first");
+    second();
+    result.push("first again");
+  }
+
+  function second() {
+    result.push("second");
+  }
+
+  first();
+  result.push("done");
+
+  return result;
+}
 ```
 
 ---
@@ -288,25 +342,30 @@ Which function is pure and which is impure? Explain why.
 
 ## Question 13 — First-Class Functions
 
-What is printed?
+Write a function `runGreeting(greetingFunction, name)` that accepts a function as an argument and returns the result of calling that function with `name`.
+
+Also write `greet(name)` that returns `"Hello " + name`.
+
+Example:
+
+```js
+runGreeting(greet, "Sam")
+// "Hello Sam"
+```
+
+This practices treating a function as a value that can be stored in a variable or passed to another function.
+
+### Answer
 
 ```js
 function greet(name) {
   return "Hello " + name;
 }
 
-const fn = greet;
-
-console.log(fn("Sam"));
+function runGreeting(greetingFunction, name) {
+  return greetingFunction(name);
+}
 ```
-
-### Answer
-
-```text
-Hello Sam
-```
-
-A function can be stored in a variable just like other values.
 
 ---
 
