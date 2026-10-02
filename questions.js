@@ -1945,20 +1945,20 @@ console.log(greet("  sam  "));
 // Hello, SAM!
 \`\`\``,
     starterCode: `function trimName(name) {
-  return name.trim();
+  // Remove leading and trailing spaces
 }
 
 function toUpper(name) {
-  return name.toUpperCase();
+  // Convert the name to uppercase
 }
 
 function addGreeting(name) {
-  return "Hello, " + name + "!";
+  // Return "Hello, NAME!"
 }
 
 function compose3(fn1, fn2, fn3) {
-  // Return a function that applies fn1, then fn2, then fn3
-  
+  // Return a new function.
+  // The returned function should apply fn1, then fn2, then fn3.
 }`,
     runExamples: [
       {
@@ -2060,15 +2060,22 @@ Write \`processUsers(users)\` that returns an object with:
 
 Try to use the appropriate array methods.`,
     starterCode: `function processUsers(users) {
-  // Return an object with:
-  // namesUppercase, adults, totalAge, firstActiveUser, hasTeen, allAdults
+  // Process the users array and return the required object.
+
+  // 1. Get all names in uppercase.
+  // 2. Get users whose age is at least 18.
+  // 3. Calculate the sum of all ages.
+  // 4. Find the first active user, or null.
+  // 5. Check whether at least one user is between 13 and 19.
+  // 6. Check whether every user is an adult.
+
   return {
-    namesUppercase: [],
-    adults: [],
-    totalAge: 0,
-    firstActiveUser: null,
-    hasTeen: false,
-    allAdults: false
+    namesUppercase: /* implement */,
+    adults: /* implement */,
+    totalAge: /* implement */,
+    firstActiveUser: /* implement */,
+    hasTeen: /* implement */,
+    allAdults: /* implement */
   };
 }`,
     runExamples: [
