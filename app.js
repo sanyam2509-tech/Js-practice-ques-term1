@@ -1,7 +1,7 @@
 // JavaScript Practice Platform - Main Application Controller
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Application State & Storage Key
+  // Application State & Storage
   const STORAGE_PREFIX = "js_practice_";
   
   const state = {
@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     runCodeBtn: document.getElementById("runCodeBtn"),
     checkCodeBtn: document.getElementById("checkCodeBtn"),
     resetCodeBtn: document.getElementById("resetCodeBtn"),
+    execStatusBadge: document.getElementById("execStatusBadge"),
 
     // Console & Test Results
     tabTestResults: document.getElementById("tabTestResults"),
@@ -148,6 +149,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Set Execution Status Badge in Editor Toolbar
+  function setExecStatus(status, text = "") {
+    if (!els.execStatusBadge) return;
+    
+    if (status === "idle") {
+      els.execStatusBadge.innerHTML = "";
+      els.execStatusBadge.className = "exec-status-badge";
+    } else if (status === "running") {
+      els.execStatusBadge.className = "exec-status-badge running";
+      els.execStatusBadge.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 11px; height: 11px;"></i> Running...`;
+    } else if (status === "success") {
+      els.execStatusBadge.className = "exec-status-badge success";
+      els.execStatusBadge.innerHTML = `<i data-lucide="check" style="width: 11px; height: 11px;"></i> ${text || "Finished"}`;
+    } else if (status === "error") {
+      els.execStatusBadge.className = "exec-status-badge error";
+      els.execStatusBadge.innerHTML = `<i data-lucide="x" style="width: 11px; height: 11px;"></i> ${text || "Error"}`;
+    } else if (status === "timeout") {
+      els.execStatusBadge.className = "exec-status-badge timeout";
+      els.execStatusBadge.innerHTML = `<i data-lucide="clock" style="width: 11px; height: 11px;"></i> Timed out`;
+    }
+
+    if (window.lucide) {
+      lucide.createIcons({ root: els.execStatusBadge });
+    }
+  }
+
   // Initialize CodeMirror Editor
   function initCodeMirror() {
     editor = CodeMirror(els.editorContainer, {
@@ -186,7 +213,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderMarkdown(text) {
     if (!text) return "";
 
-    // Escape HTML entities
     let html = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -356,7 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
     els.diffBadge.className = `difficulty-tag diff-${q.difficulty}`;
     
     let typeName = "Function Implementation";
-    if (q.type === "output") typeName = "Output Prediction";
     if (q.type === "conceptual") typeName = "Concept Analysis";
     els.typeBadge.textContent = typeName;
 
@@ -365,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="concept-tag">${escapeHTML(c)}</span>
     `).join("");
 
-    // 3. Problem Description (Contains the full question & code blocks)
+    // 3. Problem Description
     els.problemDescription.innerHTML = renderMarkdown(q.description);
 
     // 4. Interactive Quiz / Self-Check (if question has a quiz e.g. Q12)
@@ -383,8 +408,10 @@ document.addEventListener("DOMContentLoaded", () => {
     editor.setValue(initialCode);
     editor.clearHistory();
 
-    // 8. Reset Test View to Idle
+    // 8. Reset Execution Views
     resetTestView();
+    resetConsoleView(q);
+    setExecStatus("idle");
 
     // 9. Update UI controls & highlights
     updateProgressUI();
@@ -570,11 +597,22 @@ document.addEventListener("DOMContentLoaded", () => {
   function resetTestView() {
     els.testResultsView.innerHTML = `
       <div class="test-summary-card idle">
-        <span>Click <strong>"Check Code"</strong> to run automated test cases.</span>
+        <span>Click <strong>"Check Code"</strong> to run automated test cases against your submission.</span>
       </div>
     `;
     els.testResultBadge.textContent = "-";
     els.testResultBadge.className = "tab-badge";
+  }
+
+  // Reset Console UI
+  function resetConsoleView(q) {
+    const exampleLabel = q && q.runExamples && q.runExamples[0] ? q.runExamples[0].label : "";
+    els.logsStreamView.innerHTML = `
+      <div class="empty-state-text">
+        Click <strong>"Run Code"</strong> to execute your solution with example inputs${exampleLabel ? ' (' + escapeHTML(exampleLabel) + ')' : ''}.
+      </div>
+    `;
+    els.consoleLogsBadge.textContent = "0";
   }
 
   // Switch Console / Test Results Tab
@@ -598,51 +636,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Clear Console Button
   els.clearConsoleBtn.addEventListener("click", () => {
-    els.logsStreamView.innerHTML = `<div class="empty-state-text">Console output cleared.</div>`;
+    els.logsStreamView.innerHTML = `<div class="empty-state-text">Console output cleared. Click "Run Code" to execute again.</div>`;
     els.consoleLogsBadge.textContent = "0";
   });
 
-  // Render Captured Logs
-  function renderLogs(logs, error = null, result = undefined) {
+  // Render Captured Logs & Execution Output
+  function renderExecutionOutput(res) {
     els.logsStreamView.innerHTML = "";
-    
-    if (logs.length === 0 && !error && result === undefined) {
-      els.logsStreamView.innerHTML = `<div class="empty-state-text">No console output produced.</div>`;
-      els.consoleLogsBadge.textContent = "0";
-      return;
+
+    const { success, logs = [], error = null, returnValue = undefined, exampleLabel = "", duration = 0 } = res;
+
+    // 1. Execution Header Banner
+    const banner = document.createElement("div");
+    banner.className = `exec-banner ${success ? 'success' : 'error'}`;
+    banner.innerHTML = `
+      <span>${success ? '✓ Program finished successfully' : '✕ Execution failed'}</span>
+      <span style="font-family: var(--font-mono); font-size: 11px;">${duration}ms</span>
+    `;
+    els.logsStreamView.appendChild(banner);
+
+    // 2. Executed Example Label (if present)
+    if (exampleLabel) {
+      const exDiv = document.createElement("div");
+      exDiv.className = "exec-example-label";
+      exDiv.innerHTML = `<strong>Executed:</strong> <code>${escapeHTML(exampleLabel)}</code>`;
+      els.logsStreamView.appendChild(exDiv);
     }
 
-    logs.forEach(l => {
-      const entry = document.createElement("div");
-      entry.className = `log-entry ${l.type}`;
-      entry.innerHTML = `
-        <span class="log-type-tag ${l.type}">${l.type}</span>
-        <span class="log-text">${escapeHTML(l.message)}</span>
-      `;
-      els.logsStreamView.appendChild(entry);
-    });
-
-    if (result !== undefined) {
-      const resEntry = document.createElement("div");
-      resEntry.className = "log-entry info";
-      resEntry.innerHTML = `
-        <span class="log-type-tag info">return</span>
-        <span class="log-text">${escapeHTML(result)}</span>
-      `;
-      els.logsStreamView.appendChild(resEntry);
-    }
-
+    // 3. Error Box (if runtime or syntax error)
     if (error) {
-      const errEntry = document.createElement("div");
-      errEntry.className = "log-entry error";
-      errEntry.innerHTML = `
-        <span class="log-type-tag error">error</span>
-        <span class="log-text">${escapeHTML(error.name)}: ${escapeHTML(error.message)}</span>
-      `;
-      els.logsStreamView.appendChild(errEntry);
+      const errBox = document.createElement("div");
+      errBox.className = "error-details-box";
+      errBox.innerHTML = `<strong>${escapeHTML(error.name || 'Error')}:</strong> ${escapeHTML(error.message || String(error))}`;
+      els.logsStreamView.appendChild(errBox);
     }
 
-    els.consoleLogsBadge.textContent = String(logs.length + (error ? 1 : 0) + (result !== undefined ? 1 : 0));
+    // 4. Return Value Section
+    if (returnValue !== undefined) {
+      const retBox = document.createElement("div");
+      retBox.className = "return-value-box";
+      retBox.innerHTML = `
+        <span class="return-value-title">Return Value</span>
+        <pre class="return-value-content">${escapeHTML(returnValue)}</pre>
+      `;
+      els.logsStreamView.appendChild(retBox);
+    }
+
+    // 5. Captured Console Logs
+    if (logs.length > 0) {
+      const logGroup = document.createElement("div");
+      logGroup.className = "logs-group";
+      logGroup.innerHTML = `<span class="logs-group-title">Console Output (${logs.length})</span>`;
+
+      logs.forEach(l => {
+        const entry = document.createElement("div");
+        entry.className = `log-entry ${l.type}`;
+        entry.innerHTML = `
+          <span class="log-type-tag ${l.type}">${l.type}</span>
+          <span class="log-text">${escapeHTML(l.message)}</span>
+        `;
+        logGroup.appendChild(entry);
+      });
+
+      els.logsStreamView.appendChild(logGroup);
+    }
+
+    // Update Console Tab Badge
+    const totalOutputItems = logs.length + (returnValue !== undefined ? 1 : 0) + (error ? 1 : 0);
+    els.consoleLogsBadge.textContent = String(totalOutputItems);
   }
 
   // Celebration Confetti
@@ -656,42 +717,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Run Code Action
+  // =========================================================================
+  // RUN CODE ACTION (Immediate feedback, example execution, NO test scoring)
+  // =========================================================================
   async function handleRunCode() {
+    const q = getCurrentQuestion();
     const code = editor.getValue();
-    els.runCodeBtn.disabled = true;
-    els.runCodeBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> Running...`;
 
+    els.runCodeBtn.disabled = true;
+    els.runCodeBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 12px; height: 12px;"></i> Running...`;
+    setExecStatus("running");
+
+    // Automatically switch to Console Output tab
     switchTab("consoleLogs");
+    els.logsStreamView.innerHTML = `<div class="empty-state-text"><i data-lucide="loader-2" class="spin" style="width: 14px; height: 14px;"></i> Executing code...</div>`;
+    if (window.lucide) lucide.createIcons({ root: els.logsStreamView });
 
     try {
-      const result = await runner.runCode(code, 2500);
-      renderLogs(result.logs || [], result.error, result.result);
-      if (result.error) {
-        showToast(result.error.message, "error");
+      const result = await runner.runCode(code, q, 2500);
+
+      renderExecutionOutput(result);
+
+      if (result.timedOut) {
+        setExecStatus("timeout");
+        showToast("Execution timed out (2500ms). Check for infinite loops.", "error");
+      } else if (!result.success || result.error) {
+        setExecStatus("error", result.error.name || "Error");
+        showToast(result.error.message || "Execution error", "error");
+      } else {
+        setExecStatus("success", `Finished in ${result.duration}ms`);
       }
     } catch (err) {
-      renderLogs([], { name: "ExecutionError", message: err.message });
+      renderExecutionOutput({
+        success: false,
+        error: { name: "ExecutionError", message: err.message },
+        duration: 0
+      });
+      setExecStatus("error");
     } finally {
       els.runCodeBtn.disabled = false;
-      els.runCodeBtn.innerHTML = `<i data-lucide="play" style="width: 13px; height: 13px;"></i> Run Code`;
+      els.runCodeBtn.innerHTML = `<i data-lucide="play" style="width: 12px; height: 12px;"></i> Run Code`;
       if (window.lucide) lucide.createIcons();
     }
   }
 
-  // Check Code / Submission Action
+  // =========================================================================
+  // CHECK CODE ACTION (Automated test evaluation, scores submission & updates solved state)
+  // =========================================================================
   async function handleCheckCode() {
     const q = getCurrentQuestion();
     const code = editor.getValue();
 
     els.checkCodeBtn.disabled = true;
     els.checkCodeBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> Checking...`;
+    setExecStatus("running");
 
+    // Automatically switch to Test Results tab
     switchTab("testResults");
 
     try {
       const res = await runner.testCode(code, q, 2500);
-      renderLogs(res.logs || [], res.error);
 
       if (res.timedOut) {
         els.testResultsView.innerHTML = `
@@ -704,6 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         els.testResultBadge.textContent = "Timeout";
         els.testResultBadge.className = "tab-badge failed";
+        setExecStatus("timeout");
         showToast("Execution timed out! Check for infinite loops.", "error");
         return;
       }
@@ -719,6 +805,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         els.testResultBadge.textContent = "Syntax Error";
         els.testResultBadge.className = "tab-badge failed";
+        setExecStatus("error", "Syntax Error");
         showToast("Syntax error in submitted code.", "error");
         return;
       }
@@ -734,6 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         els.testResultBadge.textContent = "Missing Fn";
         els.testResultBadge.className = "tab-badge failed";
+        setExecStatus("error", "Missing Function");
         showToast(`Function '${q.targetFunction}' is missing.`, "error");
         return;
       }
@@ -768,7 +856,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${tc.argsDesc ? `<span class="tc-label">Input:</span><span class="tc-value">${escapeHTML(tc.argsDesc)}</span>` : ''}
               <span class="tc-label">Expected:</span>
               <span class="tc-value expected">${escapeHTML(tc.expected)}</span>
-              <span class="tc-label">Actual:</span>
+              <span class="tc-label">Received:</span>
               <span class="tc-value ${tc.passed ? '' : 'actual-fail'}">${escapeHTML(tc.actual)}</span>
             </div>
           </div>
@@ -779,6 +867,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Handle Success
       if (allPassed) {
+        setExecStatus("success", "Passed All Tests");
         if (!state.solved.includes(q.id)) {
           state.solved.push(q.id);
           saveStorage("solved", state.solved);
@@ -790,6 +879,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateProgressUI();
         renderSidebar();
       } else {
+        setExecStatus("error", `${passedCount}/${totalCount} Passed`);
         showToast(`${passedCount} of ${totalCount} tests passed. Check test details.`, "error");
       }
 
@@ -802,9 +892,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="tc-value actual-fail">${escapeHTML(err.message)}</div>
         </div>
       `;
+      setExecStatus("error");
     } finally {
       els.checkCodeBtn.disabled = false;
-      els.checkCodeBtn.innerHTML = `<i data-lucide="check-check" style="width: 13px; height: 13px;"></i> Check Code`;
+      els.checkCodeBtn.innerHTML = `<i data-lucide="check" style="width: 13px; height: 13px;"></i> Check Code`;
       if (window.lucide) lucide.createIcons();
     }
   }
@@ -825,6 +916,8 @@ document.addEventListener("DOMContentLoaded", () => {
       state.code[q.id] = starterVal;
       saveStorage("code", state.code);
       resetTestView();
+      resetConsoleView(q);
+      setExecStatus("idle");
       showToast(`Code for Q${q.id} reset to starter code.`, "info");
     }
   });

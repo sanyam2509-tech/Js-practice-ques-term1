@@ -4,7 +4,6 @@
   // Deep Equality Utility
   function deepEqual(a, b) {
     if (a === b) {
-      // Handles 0 === -0 and exact reference equality
       return true;
     }
 
@@ -89,18 +88,11 @@
     self.deepClone = ${deepClone.toString()};
 
     self.onmessage = function(e) {
-      const { action, code, question, timeout = 2000 } = e.data;
+      const { action, code, question, timeout = 2500 } = e.data;
       const startTime = performance.now();
       const logs = [];
 
-      // Intercept console methods
-      const originalConsole = {
-        log: console.log,
-        info: console.info,
-        warn: console.warn,
-        error: console.error
-      };
-
+      // Capture console methods
       function capture(type, args) {
         const formatted = args.map(arg => {
           if (typeof arg === "string") return arg;
@@ -116,25 +108,91 @@
 
       try {
         if (action === "run") {
-          // Execute arbitrary code
-          let evalResult;
-          let evalError = null;
+          // 1. Compile User Code
+          let userExports = {};
+          let compileError = null;
           try {
-            evalResult = (new Function(code))();
+            const userFn = new Function(
+              code + "\\n" +
+              "return { " +
+                (question && question.targetFunction ? question.targetFunction + ": (typeof " + question.targetFunction + " !== 'undefined' ? " + question.targetFunction + " : undefined)," : "") +
+                "greet: (typeof greet !== 'undefined' ? greet : undefined)," +
+                "runGreeting: (typeof runGreeting !== 'undefined' ? runGreeting : undefined)," +
+                "compose3: (typeof compose3 !== 'undefined' ? compose3 : undefined)," +
+                "trimName: (typeof trimName !== 'undefined' ? trimName : undefined)," +
+                "toUpper: (typeof toUpper !== 'undefined' ? toUpper : undefined)," +
+                "addGreeting: (typeof addGreeting !== 'undefined' ? addGreeting : undefined)" +
+              "};"
+            );
+            userExports = userFn();
           } catch (err) {
-            evalError = {
-              name: err.name || "Error",
+            compileError = {
+              name: err.name || "SyntaxError",
               message: err.message || String(err),
               stack: err.stack
             };
           }
 
-          const duration = Math.round(performance.now() - startTime);
+          if (compileError) {
+            self.postMessage({
+              success: false,
+              syntaxError: true,
+              error: compileError,
+              logs,
+              duration: Math.round((performance.now() - startTime) * 10) / 10
+            });
+            return;
+          }
+
+          // 2. Execute Example or Top-level
+          let returnValue = undefined;
+          let runError = null;
+          let exampleLabel = null;
+
+          if (question && question.runExamples && question.runExamples.length > 0) {
+            const example = question.runExamples[0];
+            exampleLabel = example.label || "";
+            try {
+              if (example.customRun) {
+                const runnerFn = (new Function("return " + example.customRun))();
+                returnValue = runnerFn(userExports);
+              } else if (question.targetFunction && typeof userExports[question.targetFunction] === "function") {
+                const targetFn = userExports[question.targetFunction];
+                const clonedArgs = deepClone(example.args || []);
+                returnValue = targetFn.apply(null, clonedArgs);
+              } else if (example.codeSnippet) {
+                returnValue = (new Function(code + "\\n" + example.codeSnippet))();
+              } else if (question.targetFunction && typeof userExports[question.targetFunction] === "undefined") {
+                runError = {
+                  name: "ReferenceError",
+                  message: "Function '" + question.targetFunction + "' is not defined in your code."
+                };
+              }
+            } catch (execErr) {
+              runError = {
+                name: execErr.name || "RuntimeError",
+                message: execErr.message || String(execErr)
+              };
+            }
+          } else {
+            // General top-level execution
+            try {
+              returnValue = (new Function(code))();
+            } catch (execErr) {
+              runError = {
+                name: execErr.name || "RuntimeError",
+                message: execErr.message || String(execErr)
+              };
+            }
+          }
+
+          const duration = Math.round((performance.now() - startTime) * 10) / 10;
           self.postMessage({
-            success: !evalError,
+            success: !runError,
             logs,
-            error: evalError,
-            result: evalResult !== undefined ? formatValue(evalResult) : undefined,
+            error: runError,
+            returnValue: returnValue !== undefined ? formatValue(returnValue) : undefined,
+            exampleLabel,
             duration
           });
           return;
@@ -144,74 +202,17 @@
           // Run test suite
           const results = [];
           let allPassed = true;
-          let executionError = null;
+          let compileError = null;
 
-          // For Output Prediction questions:
-          if (question.type === "output") {
-            let evalError = null;
-            try {
-              (new Function(code))();
-            } catch (err) {
-              evalError = {
-                name: err.name || "Error",
-                message: err.message || String(err)
-              };
-            }
-
-            const rawLogs = logs.map(l => l.message);
-
-            question.tests.forEach((test, idx) => {
-              let passed = false;
-              let actualOutput = rawLogs;
-
-              if (test.expectError) {
-                // E.g. Question 28 with TDZ ReferenceError
-                passed = evalError && evalError.name === "ReferenceError" && rawLogs.length >= 1;
-                results.push({
-                  id: idx + 1,
-                  name: test.name,
-                  passed: !!passed,
-                  expected: test.expected ? test.expected.join("\\n") + "\\n[ReferenceError]" : "[ReferenceError]",
-                  actual: rawLogs.join("\\n") + (evalError ? "\\n[" + evalError.name + ": " + evalError.message + "]" : ""),
-                  error: evalError ? evalError.message : null
-                });
-              } else {
-                // Match expected logs
-                const expectedLogs = test.expected || [];
-                const matched = expectedLogs.length === rawLogs.length && expectedLogs.every((val, i) => String(rawLogs[i]).trim() === String(val).trim());
-                passed = matched && !evalError;
-                results.push({
-                  id: idx + 1,
-                  name: test.name,
-                  passed: !!passed,
-                  expected: expectedLogs.join("\\n"),
-                  actual: rawLogs.join("\\n"),
-                  error: evalError ? evalError.message : null
-                });
-              }
-
-              if (!passed) allPassed = false;
-            });
-
-            const duration = Math.round(performance.now() - startTime);
-            self.postMessage({
-              success: true,
-              results,
-              allPassed,
-              logs,
-              duration
-            });
-            return;
-          }
-
-          // For Function-based questions:
-          // Build user environment
           let userExports = {};
           try {
             const userFn = new Function(
               code + "\\n" +
               "return { " +
                 (question.targetFunction ? question.targetFunction + ": (typeof " + question.targetFunction + " !== 'undefined' ? " + question.targetFunction + " : undefined)," : "") +
+                "greet: (typeof greet !== 'undefined' ? greet : undefined)," +
+                "sayHello: (typeof sayHello !== 'undefined' ? sayHello : undefined)," +
+                "runGreeting: (typeof runGreeting !== 'undefined' ? runGreeting : undefined)," +
                 "compose3: (typeof compose3 !== 'undefined' ? compose3 : undefined)," +
                 "trimName: (typeof trimName !== 'undefined' ? trimName : undefined)," +
                 "toUpper: (typeof toUpper !== 'undefined' ? toUpper : undefined)," +
@@ -219,22 +220,21 @@
               "};"
             );
             userExports = userFn();
-          } catch (compileErr) {
-            executionError = {
-              name: compileErr.name || "SyntaxError",
-              message: compileErr.message || String(compileErr)
+          } catch (err) {
+            compileError = {
+              name: err.name || "SyntaxError",
+              message: err.message || String(err)
             };
             self.postMessage({
               success: false,
               syntaxError: true,
-              error: executionError,
+              error: compileError,
               logs,
-              duration: Math.round(performance.now() - startTime)
+              duration: Math.round((performance.now() - startTime) * 10) / 10
             });
             return;
           }
 
-          // Verify target function exists
           const targetFn = question.targetFunction ? userExports[question.targetFunction] : null;
           if (question.targetFunction && typeof targetFn !== "function" && !question.tests[0]?.customCheck) {
             self.postMessage({
@@ -245,12 +245,12 @@
                 message: "Function '" + question.targetFunction + "' is not defined or is not a function."
               },
               logs,
-              duration: Math.round(performance.now() - startTime)
+              duration: Math.round((performance.now() - startTime) * 10) / 10
             });
             return;
           }
 
-          // Run each test
+          // Run tests
           for (let i = 0; i < question.tests.length; i++) {
             const test = question.tests[i];
             const testStart = performance.now();
@@ -264,8 +264,7 @@
                 testPassed = checker(userExports);
                 actualValue = testPassed ? test.expected : "Check failed";
               } else {
-                // Deep clone arguments so student function mutation doesn't taint future tests
-                const clonedArgs = deepClone(test.args);
+                const clonedArgs = deepClone(test.args || []);
                 actualValue = targetFn.apply(null, clonedArgs);
                 testPassed = deepEqual(actualValue, test.expected);
               }
@@ -288,7 +287,7 @@
             });
           }
 
-          const duration = Math.round(performance.now() - startTime);
+          const duration = Math.round((performance.now() - startTime) * 10) / 10;
           self.postMessage({
             success: true,
             results,
@@ -305,7 +304,7 @@
             message: fatalErr.message || String(fatalErr)
           },
           logs,
-          duration: Math.round(performance.now() - startTime)
+          duration: Math.round((performance.now() - startTime) * 10) / 10
         });
       }
     };
@@ -328,18 +327,16 @@
       }
     }
 
-    executeWorker(action, code, question = null, timeoutMs = 2000) {
+    executeWorker(action, code, question = null, timeoutMs = 2500) {
       this.terminate();
 
       return new Promise((resolve) => {
         let isResolved = false;
 
-        // Create Blob URL for Worker
         let blob;
         try {
           blob = new Blob([WORKER_CODE], { type: "application/javascript" });
         } catch (e) {
-          // Fallback if Blob fails
           resolve({
             success: false,
             error: {
@@ -354,7 +351,6 @@
         const worker = new Worker(workerUrl);
         this.currentWorker = worker;
 
-        // Set safety timeout
         this.workerTimeout = setTimeout(() => {
           if (!isResolved) {
             isResolved = true;
@@ -365,7 +361,7 @@
               timedOut: true,
               error: {
                 name: "TimeoutError",
-                message: "Execution timed out (" + timeoutMs + "ms). Check for an infinite loop or intense recursion."
+                message: "Execution timed out after " + timeoutMs + "ms. Check for an infinite loop or heavy recursion."
               },
               logs: []
             });
@@ -390,14 +386,13 @@
               success: false,
               error: {
                 name: "WorkerError",
-                message: err.message || "An unexpected error occurred in code execution worker."
+                message: err.message || "An unexpected error occurred during execution."
               },
               logs: []
             });
           }
         };
 
-        // Post job to worker
         worker.postMessage({
           action,
           code,
@@ -407,11 +402,11 @@
       });
     }
 
-    async runCode(code, timeoutMs = 2000) {
-      return this.executeWorker("run", code, null, timeoutMs);
+    async runCode(code, question = null, timeoutMs = 2500) {
+      return this.executeWorker("run", code, question, timeoutMs);
     }
 
-    async testCode(code, question, timeoutMs = 2000) {
+    async testCode(code, question, timeoutMs = 2500) {
       return this.executeWorker("test", code, question, timeoutMs);
     }
   }

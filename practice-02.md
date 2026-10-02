@@ -347,25 +347,33 @@ function extractHashtags(str) {
 
 ## Question 28 — Hoisting + Temporal Dead Zone
 
-What happens when this code runs?
+Write a function `getValues()` that returns:
 
 ```js
-console.log(a);
-console.log(b);
-
-var a = 10;
-let b = 20;
+[10, 20]
 ```
+
+Use:
+
+- `var a` for the first value
+- `let b` for the second value
+
+Initialize both variables **before accessing them**.
+
+Then briefly explain why moving `console.log(b)` before the `let b` declaration would cause an error.
 
 ### Answer
 
-The first line prints:
+```js
+function getValues() {
+  var a = 10;
+  let b = 20;
 
-```text
-undefined
+  return [a, b];
+}
 ```
 
-Then the program throws a **ReferenceError** at `console.log(b)`.
+A `let` variable cannot be accessed before its initialization because that part of its scope is the temporal dead zone.
 
 ---
 

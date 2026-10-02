@@ -27,103 +27,63 @@ for (const q of questions) {
     continue;
   }
 
-  if (q.type === "output") {
-    // Test output capture
-    const logs = [];
-    const origLog = console.log;
-    console.log = (...args) => {
-      logs.push(args.map(a => typeof a === 'string' ? a : formatValue(a)).join(' '));
-    };
-
-    let evalError = null;
-    try {
-      (new Function(q.solution))();
-    } catch (e) {
-      evalError = e;
-    } finally {
-      console.log = origLog;
-    }
-
-    let qPassed = true;
-    for (const test of q.tests) {
-      if (test.expectError) {
-        if (!evalError || evalError.name !== "ReferenceError") {
-          qPassed = false;
-        }
-      } else {
-        const expected = test.expected || [];
-        if (expected.length !== logs.length || !expected.every((val, i) => String(logs[i]).trim() === String(val).trim())) {
-          qPassed = false;
-        }
-      }
-    }
-
-    if (qPassed) {
-      console.log("✓ Output matched");
-      passedCount++;
-    } else {
-      console.log(`✗ Output mismatch! Expected: ${JSON.stringify(q.tests[0].expected)}, Actual: ${JSON.stringify(logs)}`);
-      failedCount++;
-    }
+  let userExports = {};
+  try {
+    const userFn = new Function(
+      q.solution + "\n" +
+      "return { " +
+        (q.targetFunction ? q.targetFunction + ": (typeof " + q.targetFunction + " !== 'undefined' ? " + q.targetFunction + " : undefined)," : "") +
+        "greet: (typeof greet !== 'undefined' ? greet : undefined)," +
+        "sayHello: (typeof sayHello !== 'undefined' ? sayHello : undefined)," +
+        "runGreeting: (typeof runGreeting !== 'undefined' ? runGreeting : undefined)," +
+        "compose3: (typeof compose3 !== 'undefined' ? compose3 : undefined)," +
+        "trimName: (typeof trimName !== 'undefined' ? trimName : undefined)," +
+        "toUpper: (typeof toUpper !== 'undefined' ? toUpper : undefined)," +
+        "addGreeting: (typeof addGreeting !== 'undefined' ? addGreeting : undefined)" +
+      "};"
+    );
+    userExports = userFn();
+  } catch (e) {
+    console.log(`✗ Solution compilation error: ${e.message}`);
+    failedCount++;
     continue;
   }
 
-  if (q.type === "function") {
-    let userExports = {};
+  const targetFn = q.targetFunction ? userExports[q.targetFunction] : null;
+  let allQTestsPassed = true;
+
+  for (const test of q.tests) {
+    let testPassed = false;
     try {
-      const userFn = new Function(
-        q.solution + "\n" +
-        "return { " +
-          (q.targetFunction ? q.targetFunction + ": (typeof " + q.targetFunction + " !== 'undefined' ? " + q.targetFunction + " : undefined)," : "") +
-          "compose3: (typeof compose3 !== 'undefined' ? compose3 : undefined)," +
-          "trimName: (typeof trimName !== 'undefined' ? trimName : undefined)," +
-          "toUpper: (typeof toUpper !== 'undefined' ? toUpper : undefined)," +
-          "addGreeting: (typeof addGreeting !== 'undefined' ? addGreeting : undefined)" +
-        "};"
-      );
-      userExports = userFn();
-    } catch (e) {
-      console.log(`✗ Solution compilation error: ${e.message}`);
-      failedCount++;
-      continue;
-    }
-
-    const targetFn = q.targetFunction ? userExports[q.targetFunction] : null;
-    let allQTestsPassed = true;
-
-    for (const test of q.tests) {
-      let testPassed = false;
-      try {
-        if (test.customCheck) {
-          const checker = (new Function("return " + test.customCheck))();
-          testPassed = checker(userExports);
-        } else {
-          const args = deepClone(test.args);
-          const actual = targetFn.apply(null, args);
-          testPassed = deepEqual(actual, test.expected);
-          if (!testPassed) {
-            console.log(`\n  Failed test: ${test.name}`);
-            console.log(`  Expected: ${JSON.stringify(test.expected)}`);
-            console.log(`  Actual:   ${JSON.stringify(actual)}`);
-          }
+      if (test.customCheck) {
+        const checker = (new Function("return " + test.customCheck))();
+        testPassed = checker(userExports);
+      } else {
+        const args = deepClone(test.args || []);
+        const actual = targetFn.apply(null, args);
+        testPassed = deepEqual(actual, test.expected);
+        if (!testPassed) {
+          console.log(`\n  Failed test: ${test.name}`);
+          console.log(`  Expected: ${JSON.stringify(test.expected)}`);
+          console.log(`  Actual:   ${JSON.stringify(actual)}`);
         }
-      } catch (e) {
-        console.log(`\n  Test runtime error: ${e.message}`);
-        testPassed = false;
       }
-
-      if (!testPassed) {
-        allQTestsPassed = false;
-      }
+    } catch (e) {
+      console.log(`\n  Test runtime error: ${e.message}`);
+      testPassed = false;
     }
 
-    if (allQTestsPassed) {
-      console.log(`✓ All ${q.tests.length} tests passed`);
-      passedCount++;
-    } else {
-      console.log(`✗ Tests failed`);
-      failedCount++;
+    if (!testPassed) {
+      allQTestsPassed = false;
     }
+  }
+
+  if (allQTestsPassed) {
+    console.log(`✓ All ${q.tests.length} tests passed`);
+    passedCount++;
+  } else {
+    console.log(`✗ Tests failed`);
+    failedCount++;
   }
 }
 

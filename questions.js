@@ -1,4 +1,4 @@
-// JavaScript Practice Platform - Question Dataset (All 30 Questions from practice-01.md & practice-02.md)
+// JavaScript Practice Platform - Question Dataset (All 30 Questions synced with latest practice-01.md & practice-02.md)
 
 const questions = [
   {
@@ -6,50 +6,94 @@ const questions = [
     title: "Data Types and Operations",
     difficulty: "easy",
     category: "Basics & Types",
-    concepts: ["data types", "type coercion", "typeof operator"],
-    type: "output",
-    description: `What is printed to the console?
+    concepts: ["data types", "type coercion", "typeof operator", "objects"],
+    type: "function",
+    targetFunction: "describeValues",
+    description: `Write a function \`describeValues(a, b)\` that returns an object containing:
 
+- \`addition\` → result of \`a + b\`
+- \`subtraction\` → result of \`a - b\`
+- \`typeA\` → result of \`typeof a\`
+- \`typeB\` → result of \`typeof b\`
+
+Use the values directly without converting them first.
+
+### Example:
 \`\`\`js
-let a = 10;
-let b = "5";
-
-console.log(a + b);
-console.log(a - b);
-console.log(typeof a);
-console.log(typeof b);
-\`\`\`
-
-Analyze how JavaScript handles implicit type coercion when mixing numbers and strings with the \`+\` operator vs the \`-\` operator, and what \`typeof\` returns.`,
-    starterCode: `let a = 10;
-let b = "5";
-
-console.log(a + b);
-console.log(a - b);
-console.log(typeof a);
-console.log(typeof b);`,
-    expectedLogs: ["105", "5", "number", "string"],
+describeValues(10, "5")
+// {
+//   addition: "105",
+//   subtraction: 5,
+//   typeA: "number",
+//   typeB: "string"
+// }
+\`\`\``,
+    starterCode: `function describeValues(a, b) {
+  // Write your code here
+  
+}`,
+    runExamples: [
+      {
+        args: [10, "5"],
+        label: 'describeValues(10, "5")'
+      }
+    ],
     tests: [
       {
-        name: "Check console output for a + b, a - b, typeof a, typeof b",
-        type: "output",
-        expected: ["105", "5", "number", "string"],
-        description: "Must print '105', '5', 'number', 'string' on separate lines"
+        name: "Describes values for number and numeric string (10, '5')",
+        args: [10, "5"],
+        expected: {
+          addition: "105",
+          subtraction: 5,
+          typeA: "number",
+          typeB: "string"
+        }
+      },
+      {
+        name: "Describes two numbers (5, 2)",
+        args: [5, 2],
+        expected: {
+          addition: 7,
+          subtraction: 3,
+          typeA: "number",
+          typeB: "number"
+        }
+      },
+      {
+        name: "Describes string and number ('10', 3)",
+        args: ["10", 3],
+        expected: {
+          addition: "103",
+          subtraction: 7,
+          typeA: "string",
+          typeB: "number"
+        }
+      },
+      {
+        name: "Describes boolean and number (true, 1)",
+        args: [true, 1],
+        expected: {
+          addition: 2,
+          subtraction: 0,
+          typeA: "boolean",
+          typeB: "number"
+        }
       }
     ],
     hints: [
-      "When the '+' operator is used with a number and a string, JavaScript converts the number to a string and concatenates: 10 + '5' = '105'.",
-      "When the '-' operator is used, strings are converted to numbers: 10 - '5' = 5.",
-      "'typeof' returns the primitive data type as a string: 'number' for 10 and 'string' for '5'."
+      "Return an object literal with the keys: `addition`, `subtraction`, `typeA`, and `typeB`.",
+      "For `typeA` and `typeB`, use the `typeof` operator: `typeof a` and `typeof b`.",
+      "`return { addition: a + b, subtraction: a - b, typeA: typeof a, typeB: typeof b };`."
     ],
-    solution: `let a = 10;
-let b = "5";
-
-console.log(a + b);    // 105
-console.log(a - b);    // 5
-console.log(typeof a); // number
-console.log(typeof b); // string`,
-    explanation: `When '+' is used with a number and a string, JavaScript coerces the number to a string, resulting in string concatenation ("105"). The '-' operator coerces the string to a number and performs numeric subtraction (5). The typeof operator returns "number" and "string" respectively.`
+    solution: `function describeValues(a, b) {
+  return {
+    addition: a + b,
+    subtraction: a - b,
+    typeA: typeof a,
+    typeB: typeof b
+  };
+}`,
+    explanation: `The function computes addition with \`+\` and subtraction with \`-\`, demonstrating JavaScript's automatic type coercion. The \`typeof\` operator returns the type name of each argument as a string.`
   },
   {
     id: 2,
@@ -57,46 +101,66 @@ console.log(typeof b); // string`,
     difficulty: "easy",
     category: "Variables",
     concepts: ["variables", "assignment operators", "arithmetic"],
-    type: "output",
-    description: `What is the final value of \`score\`?
+    type: "function",
+    targetFunction: "updateScore",
+    description: `Write a function \`updateScore(score)\` that:
 
+1. adds \`10\` to \`score\`
+2. multiplies the result by \`2\`
+3. subtracts \`5\`
+4. returns the final value
+
+### Example:
 \`\`\`js
-let score = 20;
-score += 10;
-score *= 2;
-score -= 5;
-
-console.log(score);
-\`\`\`
-
-Trace each arithmetic reassignment step by step from start to finish.`,
-    starterCode: `let score = 20;
-score += 10;
-score *= 2;
-score -= 5;
-
-console.log(score);`,
-    expectedLogs: ["55"],
+updateScore(20) // 55
+\`\`\``,
+    starterCode: `function updateScore(score) {
+  // 1. add 10 to score
+  // 2. multiply result by 2
+  // 3. subtract 5
+  // 4. return final value
+  
+}`,
+    runExamples: [
+      {
+        args: [20],
+        label: "updateScore(20)"
+      }
+    ],
     tests: [
       {
-        name: "Calculates correct final score value",
-        type: "output",
-        expected: ["55"],
-        description: "Final console log must print 55"
+        name: "Updates score starting from 20 -> 55",
+        args: [20],
+        expected: 55
+      },
+      {
+        name: "Updates score starting from 0 -> 15",
+        args: [0],
+        expected: 15
+      },
+      {
+        name: "Updates score starting from 5 -> 25",
+        args: [5],
+        expected: 25
+      },
+      {
+        name: "Updates score starting from 100 -> 215",
+        args: [100],
+        expected: 215
       }
     ],
     hints: [
-      "Start with score = 20.",
-      "score += 10 makes score = 30. Then score *= 2 doubles 30 to 60.",
-      "score -= 5 subtracts 5 from 60, resulting in 55."
+      "Use compound assignment operators: `score += 10`, `score *= 2`, `score -= 5`.",
+      "Make sure you perform the operations in the exact given sequence.",
+      "Return the final modified `score` variable: `return score;`."
     ],
-    solution: `let score = 20;
-score += 10; // score = 30
-score *= 2;  // score = 60
-score -= 5;  // score = 55
-
-console.log(score); // 55`,
-    explanation: `JavaScript evaluates compound assignment operators sequentially: 20 + 10 = 30; 30 * 2 = 60; 60 - 5 = 55. The final value printed is 55.`
+    solution: `function updateScore(score) {
+  score += 10;
+  score *= 2;
+  score -= 5;
+  return score;
+}`,
+    explanation: `Applying the operations in sequence on initial score 20: 20 + 10 = 30; 30 * 2 = 60; 60 - 5 = 55. The function returns 55.`
   },
   {
     id: 3,
@@ -114,9 +178,15 @@ updateFirst([10, 20, 30], 99)
 // [99, 20, 30]
 \`\`\``,
     starterCode: `function updateFirst(arr, value) {
-  // Your code here
+  // Replace first element of arr with value and return arr
   
 }`,
+    runExamples: [
+      {
+        args: [[10, 20, 30], 99],
+        label: "updateFirst([10, 20, 30], 99)"
+      }
+    ],
     tests: [
       {
         name: "Replaces first element of [10, 20, 30] with 99",
@@ -165,9 +235,15 @@ updateFirst([10, 20, 30], 99)
 countCharacters("hello") // 5
 \`\`\``,
     starterCode: `function countCharacters(str) {
-  // Your code here
+  // Return the number of characters in str
   
 }`,
+    runExamples: [
+      {
+        args: ["hello"],
+        label: 'countCharacters("hello")'
+      }
+    ],
     tests: [
       {
         name: "Counts characters in 'hello'",
@@ -217,9 +293,15 @@ isEven(7)  // false
 isEven(0)  // true
 \`\`\``,
     starterCode: `function isEven(num) {
-  // Your code here
+  // Return true if num is even, false otherwise
   
 }`,
+    runExamples: [
+      {
+        args: [4],
+        label: "isEven(4)"
+      }
+    ],
     tests: [
       {
         name: "Checks positive even number 4",
@@ -259,41 +341,53 @@ isEven(0)  // true
   },
   {
     id: 6,
-    title: "`var` Hoisting",
+    title: "`var` and Hoisting",
     difficulty: "easy",
     category: "Execution & Hoisting",
-    concepts: ["hoisting", "var", "undefined", "creation phase"],
-    type: "output",
-    description: `What is printed?
+    concepts: ["hoisting", "var", "declaration vs initialization"],
+    type: "function",
+    targetFunction: "getScore",
+    description: `Write a function \`getScore()\` that uses \`var\` and returns \`10\`.
+
+Place the \`var\` declaration at the top of the function and initialize it before returning the value.
+
+Then call:
 
 \`\`\`js
-console.log(x);
-var x = 10;
-console.log(x);
+getScore() // 10
 \`\`\`
 
-Trace how JavaScript hoists \`var\` declarations during the creation phase before executing line-by-line.`,
-    starterCode: `console.log(x);
-var x = 10;
-console.log(x);`,
-    expectedLogs: ["undefined", "10"],
+The goal is to practice the difference between a variable declaration and its initialization.`,
+    starterCode: `function getScore() {
+  var score;
+  // initialize score
+  // return score
+  
+}`,
+    runExamples: [
+      {
+        args: [],
+        label: "getScore()"
+      }
+    ],
     tests: [
       {
-        name: "Prints undefined followed by 10",
-        type: "output",
-        expected: ["undefined", "10"],
-        description: "Must print undefined, then 10"
+        name: "Returns 10 from getScore() using var",
+        args: [],
+        expected: 10
       }
     ],
     hints: [
-      "During the Creation Phase, `var` declarations are hoisted to the top of their scope and initialized to `undefined`.",
-      "The assignment `x = 10` only happens when the execution reaches that line.",
-      "Therefore, the first `console.log(x)` logs `undefined`, and the second logs `10`."
+      "Declare `var score;` at the top of the function.",
+      "Assign `score = 10;` on the next line.",
+      "Return `score;`."
     ],
-    solution: `console.log(x); // undefined
-var x = 10;
-console.log(x); // 10`,
-    explanation: `The \`var\` declaration is hoisted to the top of its scope and initialized with \`undefined\`. The assignment \`x = 10\` executes on line 2, so the second \`console.log\` prints 10.`
+    solution: `function getScore() {
+  var score;
+  score = 10;
+  return score;
+}`,
+    explanation: `With \`var\`, the declaration \`var score\` is hoisted to the top of the function during compilation, while the assignment \`score = 10\` executes sequentially at runtime.`
   },
   {
     id: 7,
@@ -301,113 +395,151 @@ console.log(x); // 10`,
     difficulty: "easy",
     category: "Execution & Hoisting",
     concepts: ["hoisting", "function declaration", "execution context"],
-    type: "output",
-    description: `What is printed?
+    type: "function",
+    targetFunction: "runGreeting",
+    description: `Write a function \`runGreeting(name)\` that calls a function named \`sayHello(name)\`.
 
+Keep the \`sayHello\` function declaration **below** \`runGreeting\` in your code.
+
+### Example:
 \`\`\`js
-sayHello();
-
-function sayHello() {
-  console.log("Hello");
-}
+runGreeting("Sam")
+// "Hello Sam"
 \`\`\`
 
-Observe how function declarations are hoisted differently from variable declarations.`,
-    starterCode: `sayHello();
+This is meant to practice function declaration hoisting.`,
+    starterCode: `function runGreeting(name) {
+  // Call sayHello(name) here
+  
+}
 
-function sayHello() {
-  console.log("Hello");
+function sayHello(name) {
+  // Return "Hello " + name
+  
 }`,
-    expectedLogs: ["Hello"],
+    runExamples: [
+      {
+        args: ["Sam"],
+        label: 'runGreeting("Sam")'
+      }
+    ],
     tests: [
       {
-        name: "Prints 'Hello' from hoisted function declaration",
-        type: "output",
-        expected: ["Hello"],
-        description: "Logs 'Hello'"
+        name: "Returns 'Hello Sam' when calling runGreeting('Sam')",
+        args: ["Sam"],
+        expected: "Hello Sam"
+      },
+      {
+        name: "Returns 'Hello Alex' when calling runGreeting('Alex')",
+        args: ["Alex"],
+        expected: "Hello Alex"
+      },
+      {
+        name: "Returns 'Hello World' when calling runGreeting('World')",
+        args: ["World"],
+        expected: "Hello World"
       }
     ],
     hints: [
-      "Function declarations (using the `function` keyword) are hoisted completely with their definitions.",
-      "Because the full function body is available in memory during compilation, calling `sayHello()` before its line works properly.",
-      "It will print 'Hello'."
+      "Inside `runGreeting(name)`, return `sayHello(name);`.",
+      "Below `runGreeting`, define `function sayHello(name) { return 'Hello ' + name; }`.",
+      "Function declarations are hoisted completely into memory, so calling `sayHello` before its declaration succeeds without error."
     ],
-    solution: `sayHello(); // "Hello"
+    solution: `function runGreeting(name) {
+  return sayHello(name);
+}
 
-function sayHello() {
-  console.log("Hello");
+function sayHello(name) {
+  return "Hello " + name;
 }`,
-    explanation: `Function declarations are hoisted in their entirety into memory during the creation phase. Thus, \`sayHello()\` can be invoked before its declaration in the source code.`
+    explanation: `Function declarations are hoisted in their entirety into memory during the creation phase. Therefore, \`runGreeting\` can invoke \`sayHello\` even though \`sayHello\` is declared below it in the source code.`
   },
   {
     id: 8,
     title: "Execution Order and Call Stack",
     difficulty: "easy",
     category: "Execution & Hoisting",
-    concepts: ["call stack", "execution context", "synchronous flow"],
-    type: "output",
-    description: `What is the output order?
+    concepts: ["call stack", "execution context", "nested functions"],
+    type: "function",
+    targetFunction: "getExecutionOrder",
+    description: `Write a function \`getExecutionOrder()\` that uses two nested function calls to return this exact array:
 
 \`\`\`js
-function first() {
-  console.log("first");
-  second();
-  console.log("first again");
-}
-
-function second() {
-  console.log("second");
-}
-
-first();
-console.log("done");
+[
+  "first",
+  "second",
+  "first again",
+  "done"
+]
 \`\`\`
 
-Trace the Call Stack execution step by step.`,
-    starterCode: `function first() {
-  console.log("first");
-  second();
-  console.log("first again");
-}
+### Requirements:
+- \`first()\` should add \`"first"\`
+- \`first()\` should call \`second()\`
+- \`second()\` should add \`"second"\`
+- after \`second()\` returns, \`first()\` should add \`"first again"\`
+- after \`first()\` finishes, add \`"done"\``,
+    starterCode: `function getExecutionOrder() {
+  const result = [];
 
-function second() {
-  console.log("second");
-}
+  function first() {
+    // 1. add "first" to result
+    // 2. call second()
+    // 3. add "first again" to result
+  }
 
-first();
-console.log("done");`,
-    expectedLogs: ["first", "second", "first again", "done"],
+  function second() {
+    // add "second" to result
+  }
+
+  // 1. call first()
+  // 2. add "done" to result
+  // 3. return result
+
+}`,
+    runExamples: [
+      {
+        args: [],
+        label: "getExecutionOrder()"
+      }
+    ],
     tests: [
       {
-        name: "Verifies synchronous call stack execution order",
-        type: "output",
-        expected: ["first", "second", "first again", "done"],
-        description: "Prints first, second, first again, done"
+        name: "Returns exact array representing call stack execution order",
+        args: [],
+        expected: [
+          "first",
+          "second",
+          "first again",
+          "done"
+        ]
       }
     ],
     hints: [
-      "`first()` is called and pushed to the stack. It immediately logs 'first'.",
-      "Inside `first()`, `second()` is called and pushed onto the stack. It logs 'second' and finishes (popped).",
-      "Control resumes in `first()`, logging 'first again'. `first()` finishes, and finally 'done' is logged."
+      "Initialize `const result = [];` at the start of `getExecutionOrder`.",
+      "Inside `first()`, do `result.push('first'); second(); result.push('first again');`.",
+      "Inside `second()`, do `result.push('second');`.",
+      "Call `first();`, push `'done'`, and return `result`."
     ],
-    solution: `function first() {
-  console.log("first");
-  second();
-  console.log("first again");
-}
+    solution: `function getExecutionOrder() {
+  const result = [];
 
-function second() {
-  console.log("second");
-}
+  function first() {
+    result.push("first");
+    second();
+    result.push("first again");
+  }
 
-first();
-console.log("done");
-// Output:
-// first
-// second
-// first again
-// done`,
-    explanation: `The call stack operates LIFO (Last In, First Out). \`first()\` runs line 1 ("first"), calls \`second()\` which runs and prints "second", then \`first()\` resumes and prints "first again". After \`first()\` returns, global execution prints "done".`
+  function second() {
+    result.push("second");
+  }
+
+  first();
+  result.push("done");
+
+  return result;
+}`,
+    explanation: `The call stack pushes \`first()\`, which pushes "first", then calls \`second()\` (pushed on top of stack). \`second()\` pushes "second" and finishes (popped). Control returns to \`first()\`, pushing "first again" (popped). Global execution pushes "done" and returns the array.`
   },
   {
     id: 9,
@@ -428,6 +560,12 @@ doubleNumbers([1, 2, 3, 4])
   // Your code here using map
   
 }`,
+    runExamples: [
+      {
+        args: [[1, 2, 3, 4]],
+        label: "doubleNumbers([1, 2, 3, 4])"
+      }
+    ],
     tests: [
       {
         name: "Doubles positive numbers [1, 2, 3, 4]",
@@ -481,19 +619,25 @@ const users = [
 ];
 
 getAdults(users);
-\`\`\`
-
-### Expected result:
-\`\`\`js
-[
-  { name: "B", age: 21 },
-  { name: "C", age: 18 }
-]
+// [
+//   { name: "B", age: 21 },
+//   { name: "C", age: 18 }
+// ]
 \`\`\``,
     starterCode: `function getAdults(users) {
   // Your code here using filter
   
 }`,
+    runExamples: [
+      {
+        args: [[
+          { name: "A", age: 17 },
+          { name: "B", age: 21 },
+          { name: "C", age: 18 }
+        ]],
+        label: 'getAdults(users)'
+      }
+    ],
     tests: [
       {
         name: "Filters users with age >= 18",
@@ -556,6 +700,12 @@ total([10, 20, 30]) // 60
   // Your code here using reduce
   
 }`,
+    runExamples: [
+      {
+        args: [[10, 20, 30]],
+        label: "total([10, 20, 30])"
+      }
+    ],
     tests: [
       {
         name: "Sums [10, 20, 30]",
@@ -634,6 +784,12 @@ console.log("add(2, 3):", add(2, 3));
 
 console.log("addToTotal(5):", addToTotal(5));
 console.log("addToTotal(5):", addToTotal(5));`,
+    runExamples: [
+      {
+        codeSnippet: `console.log("add(2, 3):", add(2, 3)); console.log("addToTotal(5):", addToTotal(5));`,
+        label: "Run Pure vs Impure demo"
+      }
+    ],
     quiz: {
       question: "Which of the following statements is correct?",
       options: [
@@ -658,50 +814,83 @@ console.log("addToTotal(5):", addToTotal(5));`,
     title: "First-Class Functions",
     difficulty: "easy",
     category: "Functions",
-    concepts: ["first-class functions", "function references", "variables"],
-    type: "output",
-    description: `What is printed?
+    concepts: ["first-class functions", "higher-order functions", "callbacks"],
+    type: "function",
+    targetFunction: "runGreeting",
+    description: `Write a function \`runGreeting(greetingFunction, name)\` that accepts a function as an argument and returns the result of calling that function with \`name\`.
 
+Also write \`greet(name)\` that returns \`"Hello " + name\`.
+
+### Example:
 \`\`\`js
-function greet(name) {
-  return "Hello " + name;
-}
-
-const fn = greet;
-
-console.log(fn("Sam"));
+runGreeting(greet, "Sam")
+// "Hello Sam"
 \`\`\`
 
-A function in JavaScript can be stored in a variable just like other values.`,
+This practices treating a function as a value that can be stored in a variable or passed to another function.`,
     starterCode: `function greet(name) {
-  return "Hello " + name;
+  // Return "Hello " + name
+  
 }
 
-const fn = greet;
-
-console.log(fn("Sam"));`,
-    expectedLogs: ["Hello Sam"],
+function runGreeting(greetingFunction, name) {
+  // Call greetingFunction with name and return result
+  
+}`,
+    runExamples: [
+      {
+        customRun: `(function(exports) {
+          if (typeof exports.greet === 'function' && typeof exports.runGreeting === 'function') {
+            return exports.runGreeting(exports.greet, "Sam");
+          }
+          return "Please define greet and runGreeting";
+        })`,
+        label: 'runGreeting(greet, "Sam")'
+      }
+    ],
     tests: [
       {
-        name: "Prints 'Hello Sam' via function reference variable",
-        type: "output",
-        expected: ["Hello Sam"],
-        description: "Prints 'Hello Sam'"
+        name: "Calls greet with 'Sam' -> 'Hello Sam'",
+        customCheck: `(function(userExports) {
+          if (typeof userExports.runGreeting !== 'function' || typeof userExports.greet !== 'function') return false;
+          return userExports.runGreeting(userExports.greet, "Sam") === "Hello Sam";
+        })`,
+        argsDesc: 'runGreeting(greet, "Sam")',
+        expected: "Hello Sam"
+      },
+      {
+        name: "Calls greet with 'Alex' -> 'Hello Alex'",
+        customCheck: `(function(userExports) {
+          if (typeof userExports.runGreeting !== 'function' || typeof userExports.greet !== 'function') return false;
+          return userExports.runGreeting(userExports.greet, "Alex") === "Hello Alex";
+        })`,
+        argsDesc: 'runGreeting(greet, "Alex")',
+        expected: "Hello Alex"
+      },
+      {
+        name: "Verifies passing a custom function argument dynamically",
+        customCheck: `(function(userExports) {
+          if (typeof userExports.runGreeting !== 'function') return false;
+          const customFn = n => "Welcome, " + n + "!";
+          return userExports.runGreeting(customFn, "Jordan") === "Welcome, Jordan!";
+        })`,
+        argsDesc: 'runGreeting(n => "Welcome, " + n + "!", "Jordan")',
+        expected: "Welcome, Jordan!"
       }
     ],
     hints: [
-      "`const fn = greet;` assigns the function reference `greet` to the variable `fn`.",
-      "Invoking `fn(\"Sam\")` calls the underlying `greet` function with argument 'Sam'.",
-      "`greet(\"Sam\")` returns 'Hello Sam', which is logged to the console."
+      "In `greet(name)`, return `'Hello ' + name;`.",
+      "In `runGreeting(greetingFunction, name)`, call `greetingFunction(name)` and return its result.",
+      "Functions in JavaScript are first-class citizens and can be passed around as arguments."
     ],
     solution: `function greet(name) {
   return "Hello " + name;
 }
 
-const fn = greet;
-
-console.log(fn("Sam")); // Hello Sam`,
-    explanation: `A function can be stored in a variable just like other values. Because JavaScript treats functions as first-class citizens, assigning \`fn = greet\` makes \`fn\` reference the same function object.`
+function runGreeting(greetingFunction, name) {
+  return greetingFunction(name);
+}`,
+    explanation: `A function can be passed as an argument just like any other value. \`runGreeting\` receives the function reference in \`greetingFunction\`, calls it with \`name\`, and returns the evaluated string.`
   },
   {
     id: 14,
@@ -725,6 +914,12 @@ applyOperation(10, 5, function (x, y) {
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: [10, 5, (x, y) => x - y],
+        label: "applyOperation(10, 5, (x, y) => x - y)"
+      }
+    ],
     tests: [
       {
         name: "Applies subtraction callback (10 - 5)",
@@ -783,6 +978,17 @@ For the given data, the result is \`160\`.`,
   // Chain .filter(), .map(), and .reduce()
   
 }`,
+    runExamples: [
+      {
+        args: [[
+          { name: "A", age: 17, score: 80 },
+          { name: "B", age: 20, score: 90 },
+          { name: "C", age: 22, score: 70 },
+          { name: "D", age: 16, score: 95 }
+        ]],
+        label: "totalAdultScore(users)"
+      }
+    ],
     tests: [
       {
         name: "Calculates total adult score for mixed users (90 + 70 = 160)",
@@ -851,6 +1057,12 @@ removeDuplicates([1, 2, 2, 3, 1, 4])
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: [[1, 2, 2, 3, 1, 4]],
+        label: "removeDuplicates([1, 2, 2, 3, 1, 4])"
+      }
+    ],
     tests: [
       {
         name: "Removes duplicate numbers [1, 2, 2, 3, 1, 4]",
@@ -908,6 +1120,12 @@ countVowels("JavaScript") // 3
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: ["JavaScript"],
+        label: 'countVowels("JavaScript")'
+      }
+    ],
     tests: [
       {
         name: "Counts vowels in 'JavaScript' (3)",
@@ -974,6 +1192,12 @@ You may assume the array contains at least two distinct numbers.`,
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: [[10, 5, 8, 10, 7]],
+        label: "secondLargest([10, 5, 8, 10, 7])"
+      }
+    ],
     tests: [
       {
         name: "Finds second largest with duplicate maximum [10, 5, 8, 10, 7]",
@@ -1038,6 +1262,12 @@ frequency(["a", "b", "a", "c", "b", "a"])
   // Your code here using reduce
   
 }`,
+    runExamples: [
+      {
+        args: [["a", "b", "a", "c", "b", "a"]],
+        label: 'frequency(["a", "b", "a", "c", "b", "a"])'
+      }
+    ],
     tests: [
       {
         name: "Counts character frequencies ['a', 'b', 'a', 'c', 'b', 'a']",
@@ -1107,6 +1337,17 @@ Use a single functional chain with \`filter()\`, \`map()\`, and \`reduce()\`.
   // Chain .filter(), .map(), and .reduce()
   
 }`,
+    runExamples: [
+      {
+        args: [[
+          { name: "A", active: true, amount: 500 },
+          { name: "B", active: false, amount: 800 },
+          { name: "C", active: true, amount: 1200 },
+          { name: "D", active: true, amount: 300 }
+        ]],
+        label: "totalRevenue(users)"
+      }
+    ],
     tests: [
       {
         name: "Sums amounts for active users from example data",
@@ -1177,6 +1418,17 @@ Write \`firstActiveUser(users)\` that returns the first active user. If none exi
   // Your code here using find
   
 }`,
+    runExamples: [
+      {
+        args: [[
+          { id: 1, name: "A", active: false },
+          { id: 2, name: "B", active: false },
+          { id: 3, name: "C", active: true },
+          { id: 4, name: "D", active: true }
+        ]],
+        label: "firstActiveUser(users)"
+      }
+    ],
     tests: [
       {
         name: "Finds first active user from list",
@@ -1237,6 +1489,12 @@ hasTeen([{ age: 10 }, { age: 20 }, { age: 30 }]) // false
   // Your code here using some
   
 }`,
+    runExamples: [
+      {
+        args: [[{ age: 12 }, { age: 19 }, { age: 25 }]],
+        label: "hasTeen([{ age: 12 }, { age: 19 }, { age: 25 }])"
+      }
+    ],
     tests: [
       {
         name: "Returns true when a 19-year old is present",
@@ -1290,6 +1548,12 @@ allAdults([{ age: 18 }, { age: 17 }, { age: 25 }]) // false
   // Your code here using every
   
 }`,
+    runExamples: [
+      {
+        args: [[{ age: 18 }, { age: 22 }, { age: 30 }]],
+        label: "allAdults([{ age: 18 }, { age: 22 }, { age: 30 }])"
+      }
+    ],
     tests: [
       {
         name: "Returns true when all users are >= 18",
@@ -1344,6 +1608,12 @@ Write a straightforward solution using loops.`,
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: [[3, 3, 4, 3, 2, 3, 3]],
+        label: "majorityElement([3, 3, 4, 3, 2, 3, 3])"
+      }
+    ],
     tests: [
       {
         name: "Finds majority element 3 in [3, 3, 4, 3, 2, 3, 3]",
@@ -1406,6 +1676,12 @@ missingNumber([3, 0, 1]) // 2
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: [[3, 0, 1]],
+        label: "missingNumber([3, 0, 1])"
+      }
+    ],
     tests: [
       {
         name: "Finds missing number in [3, 0, 1]",
@@ -1453,7 +1729,7 @@ missingNumber([3, 0, 1]) // 2
 
   return expected - actual;
 }`,
-    explanation: `By comparing the expected sum of all integers from 0 to \`n\` with the actual sum of integers present in \`nums\`, the difference reveals the missing value in $O(n)$ time and $O(1)$ space.`
+    explanation: `By comparing the expected sum of all integers from 0 to \`n\` with the actual sum of integers present in \`nums\`, the difference reveals the missing value in O(n) time and O(1) space.`
   },
   {
     id: 26,
@@ -1475,6 +1751,12 @@ missingNumber([3, 0, 1]) // 2
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: ["john.doe@example.com"],
+        label: 'maskEmail("john.doe@example.com")'
+      }
+    ],
     tests: [
       {
         name: "Masks standard email 'john.doe@example.com'",
@@ -1519,7 +1801,7 @@ missingNumber([3, 0, 1]) // 2
   const masked = "*".repeat(username.length - 2);
   return username[0] + masked + username[username.length - 1] + domain;
 }`,
-    explanation: `We split the email into \`username\` and \`domain\` at the \`@\` index. If username length $> 2$, we keep the first character (\`username[0]\`), insert \`*\` repeated for the intermediate length (\`username.length - 2\`), append the last username character (\`username[username.length - 1]\`), and attach \`domain\`.`
+    explanation: `We split the email into \`username\` and \`domain\` at the \`@\` index. If username length > 2, we keep the first character (\`username[0]\`), insert \`*\` repeated for the intermediate length (\`username.length - 2\`), append the last username character (\`username[username.length - 1]\`), and attach \`domain\`.`
   },
   {
     id: 27,
@@ -1540,6 +1822,12 @@ extractHashtags("Loving the #sun and #beach vibes")
   // Your code here
   
 }`,
+    runExamples: [
+      {
+        args: ["Loving the #sun and #beach vibes"],
+        label: 'extractHashtags("Loving the #sun and #beach vibes")'
+      }
+    ],
     tests: [
       {
         name: "Extracts hashtags from 'Loving the #sun and #beach vibes'",
@@ -1584,46 +1872,54 @@ extractHashtags("Loving the #sun and #beach vibes")
     title: "Hoisting + Temporal Dead Zone",
     difficulty: "hard",
     category: "Execution & Hoisting",
-    concepts: ["hoisting", "temporal dead zone", "let vs var", "ReferenceError"],
-    type: "output",
-    description: `What happens when this code runs?
+    concepts: ["hoisting", "temporal dead zone", "let vs var", "scope"],
+    type: "function",
+    targetFunction: "getValues",
+    description: `Write a function \`getValues()\` that returns:
 
 \`\`\`js
-console.log(a);
-console.log(b);
-
-var a = 10;
-let b = 20;
+[10, 20]
 \`\`\`
 
-Understand how \`var\` and \`let\` differ during the creation phase and the effect of the **Temporal Dead Zone (TDZ)**.`,
-    starterCode: `console.log(a);
-console.log(b);
+Use:
 
-var a = 10;
-let b = 20;`,
-    expectedLogs: ["undefined"],
-    expectError: "ReferenceError",
+- \`var a\` for the first value (\`10\`)
+- \`let b\` for the second value (\`20\`)
+
+Initialize both variables **before accessing them**.
+
+Then understand why moving \`console.log(b)\` before the \`let b\` declaration would cause an error (Temporal Dead Zone).`,
+    starterCode: `function getValues() {
+  // Declare and initialize var a = 10;
+  // Declare and initialize let b = 20;
+  // Return [a, b];
+  
+}`,
+    runExamples: [
+      {
+        args: [],
+        label: "getValues()"
+      }
+    ],
     tests: [
       {
-        name: "Logs undefined for 'a' and throws ReferenceError for 'b'",
-        type: "output",
-        expected: ["undefined"],
-        expectError: true,
-        description: "Logs 'undefined', then raises ReferenceError on 'b' due to TDZ"
+        name: "Returns [10, 20] using var and let",
+        args: [],
+        expected: [10, 20]
       }
     ],
     hints: [
-      "`var a` is hoisted and initialized to `undefined`, so `console.log(a)` logs `undefined`.",
-      "`let b` is also hoisted, but remains uninitialized in the **Temporal Dead Zone (TDZ)**.",
-      "Accessing `b` before `let b = 20;` throws a `ReferenceError: Cannot access 'b' before initialization`."
+      "Inside `getValues()`, write `var a = 10;`.",
+      "On the next line, write `let b = 20;`.",
+      "Return `[a, b];`."
     ],
-    solution: `console.log(a); // logs 'undefined'
-console.log(b); // throws ReferenceError (TDZ)
+    solution: `function getValues() {
+  var a = 10;
+  let b = 20;
 
-var a = 10;
-let b = 20;`,
-    explanation: `The first line prints \`undefined\` because \`var a\` is hoisted and initialized to \`undefined\`. Then the program throws a **ReferenceError** at \`console.log(b)\` because \`let b\` is in the Temporal Dead Zone (TDZ) prior to its declaration.`
+  return [a, b];
+}`,
+    explanation: `A \`let\` variable cannot be accessed before its initialization because that part of its scope is in the Temporal Dead Zone (TDZ). Initializing \`var a = 10\` and \`let b = 20\` before returning allows \`[a, b]\` to evaluate to \`[10, 20]\`.`
   },
   {
     id: 29,
@@ -1664,6 +1960,18 @@ function compose3(fn1, fn2, fn3) {
   // Return a function that applies fn1, then fn2, then fn3
   
 }`,
+    runExamples: [
+      {
+        customRun: `(function(userExports) {
+          if (typeof userExports.compose3 === 'function') {
+            const greet = userExports.compose3(userExports.trimName, userExports.toUpper, userExports.addGreeting);
+            return greet("  sam  ");
+          }
+          return "Please implement compose3";
+        })`,
+        label: 'compose3(trimName, toUpper, addGreeting)("  sam  ")'
+      }
+    ],
     tests: [
       {
         name: "Composes trimName -> toUpper -> addGreeting on '  sam  '",
@@ -1763,6 +2071,17 @@ Try to use the appropriate array methods.`,
     allAdults: false
   };
 }`,
+    runExamples: [
+      {
+        args: [[
+          { id: 1, name: "alice", age: 17, active: false },
+          { id: 2, name: "bob", age: 21, active: true },
+          { id: 3, name: "charlie", age: 19, active: false },
+          { id: 4, name: "diana", age: 26, active: true }
+        ]],
+        label: "processUsers(users)"
+      }
+    ],
     tests: [
       {
         name: "Processes standard 4-user dataset",
